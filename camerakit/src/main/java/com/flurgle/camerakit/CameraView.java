@@ -183,6 +183,12 @@ public class CameraView extends FrameLayout {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
+    /**
+     * Starting the camera.
+     * <p>
+     * Camera is not started on the background thread. It is your responsibility to call this method
+     * on thread different of main thread.
+     */
     public void start() {
         int cameraCheck = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA);
         int audioCheck = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO);
@@ -210,12 +216,7 @@ public class CameraView extends FrameLayout {
                 break;
         }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mCameraImpl.start();
-            }
-        }).start();
+        mCameraImpl.start();
     }
 
     public void stop() {
