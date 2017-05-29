@@ -63,7 +63,6 @@ public class CameraView extends FrameLayout {
     private boolean mAdjustViewBounds;
 
     private CameraListenerMiddleWare mCameraListener;
-    private DisplayOrientationDetector mDisplayOrientationDetector;
 
     private CameraImpl mCameraImpl;
     private PreviewImpl mPreviewImpl;
@@ -110,13 +109,13 @@ public class CameraView extends FrameLayout {
         setPermissions(mPermissions);
         setVideoQuality(mVideoQuality);
 
-        mDisplayOrientationDetector = new DisplayOrientationDetector(context) {
-            @Override
-            public void onDisplayOrientationChanged(int displayOrientation) {
-                mCameraImpl.setDisplayOrientation(displayOrientation);
-                mPreviewImpl.setDisplayOrientation(displayOrientation);
-            }
-        };
+
+//        mDisplayOrientationDetector = new DisplayOrientationDetector(context) {
+//            @Override
+//            public void onDisplayOrientationChanged(int displayOrientation) {
+//
+//            }
+//        };
 
         final FocusMarkerLayout focusMarkerLayout = new FocusMarkerLayout(getContext());
         addView(focusMarkerLayout);
@@ -134,19 +133,28 @@ public class CameraView extends FrameLayout {
         });
     }
 
+    private void lockRotationToPortrait() {
+        int portraitOrientation = DisplayOrientationDetector.DISPLAY_ORIENTATIONS.get(0);
+        mCameraImpl.setDisplayOrientation(portraitOrientation);
+        mPreviewImpl.setDisplayOrientation(portraitOrientation);
+    }
+
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        mDisplayOrientationDetector.enable(
-                ViewCompat.isAttachedToWindow(this)
-                        ? DisplayManagerCompat.getInstance(getContext()).getDisplay(Display.DEFAULT_DISPLAY)
-                        : null
-        );
+        if (ViewCompat.isAttachedToWindow(this)) {
+            lockRotationToPortrait();
+        }
+//        mDisplayOrientationDetector.enable(
+//                ViewCompat.isAttachedToWindow(this)
+//                        ? DisplayManagerCompat.getInstance(getContext()).getDisplay(Display.DEFAULT_DISPLAY)
+//                        : null
+//        );
     }
 
     @Override
     protected void onDetachedFromWindow() {
-        mDisplayOrientationDetector.disable();
+        //mDisplayOrientationDetector.disable();
         super.onDetachedFromWindow();
     }
 
