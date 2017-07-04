@@ -12,10 +12,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.hardware.display.DisplayManagerCompat;
 import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
-import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -30,6 +28,7 @@ import static com.flurgle.camerakit.CameraKit.Constants.FACING_FRONT;
 import static com.flurgle.camerakit.CameraKit.Constants.FLASH_AUTO;
 import static com.flurgle.camerakit.CameraKit.Constants.FLASH_OFF;
 import static com.flurgle.camerakit.CameraKit.Constants.FLASH_ON;
+import static com.flurgle.camerakit.CameraKit.Constants.FLASH_TORCH;
 import static com.flurgle.camerakit.CameraKit.Constants.METHOD_STANDARD;
 import static com.flurgle.camerakit.CameraKit.Constants.PERMISSIONS_LAZY;
 import static com.flurgle.camerakit.CameraKit.Constants.PERMISSIONS_PICTURE;
@@ -231,6 +230,11 @@ public class CameraView extends FrameLayout {
         mCameraImpl.stop();
     }
 
+    @Nullable
+    public CameraProperties getCameraProperties() {
+        return mCameraImpl.getCameraProperties();
+    }
+
     public void setFacing(@Facing final int facing) {
         this.mFacing = facing;
         mCameraImpl.setFacing(facing);
@@ -239,6 +243,11 @@ public class CameraView extends FrameLayout {
     public void setFlash(@Flash int flash) {
         this.mFlash = flash;
         mCameraImpl.setFlash(flash);
+    }
+
+    @Flash
+    public int getFlash() {
+        return mFlash;
     }
 
     public void setFocus(@Focus int focus) {
@@ -305,6 +314,7 @@ public class CameraView extends FrameLayout {
                 break;
 
             case FLASH_AUTO:
+            case FLASH_TORCH:
                 setFlash(FLASH_OFF);
                 break;
         }
