@@ -30,6 +30,7 @@ import static com.flurgle.camerakit.CameraKit.Constants.FACING_FRONT;
 import static com.flurgle.camerakit.CameraKit.Constants.FLASH_AUTO;
 import static com.flurgle.camerakit.CameraKit.Constants.FLASH_OFF;
 import static com.flurgle.camerakit.CameraKit.Constants.FLASH_ON;
+import static com.flurgle.camerakit.CameraKit.Constants.FLASH_TORCH;
 import static com.flurgle.camerakit.CameraKit.Constants.METHOD_STANDARD;
 import static com.flurgle.camerakit.CameraKit.Constants.PERMISSIONS_LAZY;
 import static com.flurgle.camerakit.CameraKit.Constants.PERMISSIONS_PICTURE;
@@ -241,6 +242,11 @@ public class CameraView extends FrameLayout {
         mCameraImpl.setFlash(flash);
     }
 
+    @Flash
+    public int getFlash() {
+        return mFlash;
+    }
+
     public void setFocus(@Focus int focus) {
         this.mFocus = focus;
         if (this.mFocus == CameraKit.Constants.FOCUS_TAP_WITH_MARKER) {
@@ -305,6 +311,7 @@ public class CameraView extends FrameLayout {
                 break;
 
             case FLASH_AUTO:
+            case FLASH_TORCH:
                 setFlash(FLASH_OFF);
                 break;
         }
