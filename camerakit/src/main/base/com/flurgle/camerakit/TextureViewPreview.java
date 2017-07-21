@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 @TargetApi(14)
-class TextureViewPreview extends PreviewImpl {
+class TextureViewPreview extends PreviewImpl implements TextureView.SurfaceTextureListener {
 
     private final TextureView mTextureView;
 
@@ -18,31 +18,30 @@ class TextureViewPreview extends PreviewImpl {
     TextureViewPreview(Context context, ViewGroup parent) {
         final View view = View.inflate(context, R.layout.texture_view, parent);
         mTextureView = (TextureView) view.findViewById(R.id.texture_view);
-        mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+        mTextureView.setSurfaceTextureListener(this);
+    }
 
-            @Override
-            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-                setSize(width, height);
-                dispatchSurfaceChanged();
-            }
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        setSize(width, height);
+        dispatchSurfaceChanged();
+    }
 
-            @Override
-            public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-                setSize(width, height);
-                dispatchSurfaceChanged();
-                setTruePreviewSize(mTrueWidth, mTrueHeight);
-            }
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        setSize(width, height);
+        dispatchSurfaceChanged();
+        setTruePreviewSize(mTrueWidth, mTrueHeight);
+    }
 
-            @Override
-            public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-                setSize(0, 0);
-                return true;
-            }
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        setSize(0, 0);
+        return true;
+    }
 
-            @Override
-            public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-            }
-        });
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
     }
 
     @Override
@@ -83,6 +82,13 @@ class TextureViewPreview extends PreviewImpl {
     @Override
     SurfaceTexture getSurfaceTexture() {
         return mTextureView.getSurfaceTexture();
+    }
+
+    @Override
+    void releaseCallbacks() {
+        if (mTextureView != null) {
+            mTextureView.setSurfaceTextureListener(null);
+        }
     }
 
     @TargetApi(15)

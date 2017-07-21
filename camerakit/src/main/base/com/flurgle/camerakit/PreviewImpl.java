@@ -45,6 +45,12 @@ abstract class PreviewImpl {
         return null;
     }
 
+    public Callback getCallback() {
+        return mCallback;
+    }
+
+    abstract void releaseCallbacks();
+
     void setSize(int width, int height) {
         mWidth = width;
         mHeight = height;

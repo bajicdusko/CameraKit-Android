@@ -33,6 +33,7 @@ import static com.flurgle.camerakit.CameraKit.Constants.METHOD_STANDARD;
 import static com.flurgle.camerakit.CameraKit.Constants.PERMISSIONS_LAZY;
 import static com.flurgle.camerakit.CameraKit.Constants.PERMISSIONS_PICTURE;
 import static com.flurgle.camerakit.CameraKit.Constants.PERMISSIONS_STRICT;
+import static com.flurgle.camerakit.CameraKit.Constants.PICTURE_MODE;
 
 public class CameraView extends FrameLayout {
 
@@ -56,6 +57,9 @@ public class CameraView extends FrameLayout {
 
     @VideoQuality
     private int mVideoQuality;
+
+    @CaptureMode
+    private int captureMode = PICTURE_MODE;
 
     private int mJpegQuality;
     private boolean mCropOutput;
@@ -243,6 +247,10 @@ public class CameraView extends FrameLayout {
     public void setFlash(@Flash int flash) {
         this.mFlash = flash;
         mCameraImpl.setFlash(flash);
+    }
+
+    public void setCaptureMode(@CaptureMode int captureMode) {
+        this.captureMode = captureMode;
     }
 
     @Flash

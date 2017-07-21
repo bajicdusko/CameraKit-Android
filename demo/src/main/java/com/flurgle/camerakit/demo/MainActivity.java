@@ -92,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnLayoutChan
     @Override
     protected void onResume() {
         super.onResume();
+        camera.setCaptureMode(CameraKit.Constants.PICTURE_MODE);
         camera.start();
     }
 

@@ -3,7 +3,6 @@ package com.flurgle.camerakit;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.ImageFormat;
-import android.graphics.PointF;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
@@ -19,6 +18,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 
+import static com.flurgle.camerakit.CameraKit.Constants.PICTURE_MODE;
+
 @TargetApi(21)
 class Camera2 extends CameraImpl {
 
@@ -33,6 +34,9 @@ class Camera2 extends CameraImpl {
     private Size mPreviewSize;
 
     private final HashMap<String, CameraProperties> mCameraPropertyMap = new HashMap<>();
+
+    @CaptureMode
+    private int captureMode = PICTURE_MODE;
 
     Camera2(CameraListener callback, PreviewImpl preview, Context context) {
         super(callback, preview);
@@ -91,6 +95,11 @@ class Camera2 extends CameraImpl {
     @Override
     void setDisplayOrientation(int displayOrientation) {
 
+    }
+
+    @Override
+    void setCaptureMode(@CaptureMode int captureMode) {
+        this.captureMode = captureMode;
     }
 
     @Override

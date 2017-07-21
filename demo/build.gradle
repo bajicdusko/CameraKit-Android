@@ -11,21 +11,23 @@ android {
         versionName "1.0.3"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
     signingConfigs {
         debug {
-            storeFile file("../keystore/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
+            storeFile file("../keystore/debug.jks")
+            storePassword = "wginwcmovgjrvusx"
+            keyAlias = "pastecan"
+            keyPassword = "wginwcmovgjrvusx"
         }
 
         release {
             storeFile file("../keystore/release.jks")
-            storePassword = "uaDVKrrS7Y007fkm"
-            keyAlias = "idpal"
-            keyPassword = "uaDVKrrS7Y007fkm"
+            storePassword = "wginwcmovgjrvusx"
+            keyAlias = "pastecan"
+            keyPassword = "wginwcmovgjrvusx"
         }
     }
+
     buildTypes {
         debug{
             debuggable true

@@ -24,6 +24,8 @@ abstract class CameraImpl {
     abstract void setZoom(@Zoom int zoom);
     abstract void setVideoQuality(@VideoQuality int videoQuality);
 
+    abstract void setCaptureMode(@CaptureMode int captureMode);
+
     abstract void captureImage();
     abstract void startVideo();
     abstract void endVideo();

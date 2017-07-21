@@ -7,8 +7,8 @@ import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Handler;
-import android.util.Log;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.View;
@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -28,6 +27,7 @@ import static com.flurgle.camerakit.CameraKit.Constants.FOCUS_OFF;
 import static com.flurgle.camerakit.CameraKit.Constants.FOCUS_TAP;
 import static com.flurgle.camerakit.CameraKit.Constants.METHOD_STANDARD;
 import static com.flurgle.camerakit.CameraKit.Constants.METHOD_STILL;
+import static com.flurgle.camerakit.CameraKit.Constants.VIDEO_MODE;
 
 @SuppressWarnings("deprecation")
 public class Camera1 extends CameraImpl {
@@ -71,6 +71,7 @@ public class Camera1 extends CameraImpl {
     private int mVideoQuality;
 
     private Handler mHandler = new Handler();
+    private int captureMode;
 
     Camera1(CameraListener callback, PreviewImpl preview) {
         super(callback, preview);
@@ -100,7 +101,9 @@ public class Camera1 extends CameraImpl {
 
     @Override
     void stop() {
-        if (mCamera != null) mCamera.stopPreview();
+        if (mCamera != null) {
+            mCamera.stopPreview();
+        }
         mHandler.removeCallbacksAndMessages(null);
         releaseCamera();
     }
@@ -212,6 +215,11 @@ public class Camera1 extends CameraImpl {
     }
 
     @Override
+    void setCaptureMode(@CaptureMode int captureMode) {
+        this.captureMode = captureMode;
+    }
+
+    @Override
     void captureImage() {
         switch (mMethod) {
             case METHOD_STANDARD:
@@ -222,19 +230,18 @@ public class Camera1 extends CameraImpl {
                     capturingImage = true;
 
                     mCamera.takePicture(null, null, null,
-                        new Camera.PictureCallback() {
-                            @Override
-                            public void onPictureTaken(byte[] data, Camera camera) {
-                                mCameraListener.onPictureTaken(data);
+                            new Camera.PictureCallback() {
+                                @Override
+                                public void onPictureTaken(byte[] data, Camera camera) {
+                                    mCameraListener.onPictureTaken(data);
 
-                                // Reset capturing state to allow photos to be taken
-                                capturingImage = false;
+                                    // Reset capturing state to allow photos to be taken
+                                    capturingImage = false;
 
-                                camera.startPreview();
-                            }
-                        });
-                }
-                else {
+                                    camera.startPreview();
+                                }
+                            });
+                } else {
                     Log.w(TAG, "Unable, waiting for picture to be taken");
                 }
                 break;
@@ -272,8 +279,7 @@ public class Camera1 extends CameraImpl {
 
     // Code from SandriosCamera library
     // https://github.com/sandrios/sandriosCamera/blob/master/sandriosCamera/src/main/java/com/sandrios/sandriosCamera/internal/utils/CameraHelper.java#L218
-    public static Size getSizeWithClosestRatio(List<Size> sizes, int width, int height)
-    {
+    public static Size getSizeWithClosestRatio(List<Size> sizes, int width, int height) {
         if (sizes == null) return null;
 
         double MIN_TOLERANCE = 100;
@@ -325,12 +331,18 @@ public class Camera1 extends CameraImpl {
     // https://github.com/sandrios/sandriosCamera/blob/master/sandriosCamera/src/main/java/com/sandrios/sandriosCamera/internal/manager/impl/Camera1Manager.java#L212
     void initResolutions() {
         List<Size> previewSizes = sizesFromList(mCameraParameters.getSupportedPreviewSizes());
-        List<Size> videoSizes = (Build.VERSION.SDK_INT > 10) ? sizesFromList(mCameraParameters.getSupportedVideoSizes()) : previewSizes;
+        List<Size> captureSizes;
+
+        if (captureMode == VIDEO_MODE) {
+            captureSizes = (Build.VERSION.SDK_INT > 10) ? sizesFromList(mCameraParameters.getSupportedVideoSizes()) : previewSizes;
+        } else {
+            captureSizes = (Build.VERSION.SDK_INT > 10) ? sizesFromList(mCameraParameters.getSupportedPictureSizes()) : previewSizes;
+        }
 
         CamcorderProfile camcorderProfile = getCamcorderProfile(mVideoQuality);
 
         mCaptureSize = getSizeWithClosestRatio(
-                (videoSizes == null || videoSizes.isEmpty()) ? previewSizes : videoSizes,
+                (captureSizes == null || captureSizes.isEmpty()) ? previewSizes : captureSizes,
                 camcorderProfile.videoFrameWidth, camcorderProfile.videoFrameHeight);
 
         mPreviewSize = getSizeWithClosestRatio(previewSizes, mCaptureSize.getWidth(), mCaptureSize.getHeight());
@@ -388,6 +400,9 @@ public class Camera1 extends CameraImpl {
 
     private void releaseCamera() {
         if (mCamera != null) {
+            mCamera.setPreviewCallback(null);
+            mPreview.releaseCallbacks();
+            mCamera.unlock();
             mCamera.release();
             mCamera = null;
             mCameraParameters = null;
@@ -409,7 +424,7 @@ public class Camera1 extends CameraImpl {
         int previewRotation = calculatePreviewRotation();
         if (mCameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             //Front is flipped
-            return (previewRotation + 180 + 2*mDisplayOrientation + 720) %360;
+            return (previewRotation + 180 + 2 * mDisplayOrientation + 720) % 360;
         } else {
             return previewRotation;
         }
@@ -418,10 +433,10 @@ public class Camera1 extends CameraImpl {
     private void adjustCameraParameters() {
         initResolutions();
 
-        boolean invertPreviewSizes = mDisplayOrientation%180 != 0;
+        boolean invertPreviewSizes = mDisplayOrientation % 180 != 0;
         mPreview.setTruePreviewSize(
-                invertPreviewSizes? getPreviewResolution().getHeight() : getPreviewResolution().getWidth(),
-                invertPreviewSizes? getPreviewResolution().getWidth() : getPreviewResolution().getHeight()
+                invertPreviewSizes ? getPreviewResolution().getHeight() : getPreviewResolution().getWidth(),
+                invertPreviewSizes ? getPreviewResolution().getWidth() : getPreviewResolution().getHeight()
         );
 
         mCameraParameters.setPreviewSize(
@@ -433,6 +448,7 @@ public class Camera1 extends CameraImpl {
                 getCaptureResolution().getWidth(),
                 getCaptureResolution().getHeight()
         );
+
         int rotation = calculateCaptureRotation();
         mCameraParameters.setRotation(rotation);
 
@@ -584,17 +600,17 @@ public class Camera1 extends CameraImpl {
                         List<Camera.Area> meteringAreas = new ArrayList<>();
                         meteringAreas.add(new Camera.Area(rect, getFocusMeteringAreaWeight()));
                         if (parameters.getMaxNumFocusAreas() != 0 && focusMode != null &&
-                            (focusMode.equals(Camera.Parameters.FOCUS_MODE_AUTO) ||
-                            focusMode.equals(Camera.Parameters.FOCUS_MODE_MACRO) ||
-                            focusMode.equals(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE) ||
-                            focusMode.equals(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO))
-                        ) {
+                                (focusMode.equals(Camera.Parameters.FOCUS_MODE_AUTO) ||
+                                        focusMode.equals(Camera.Parameters.FOCUS_MODE_MACRO) ||
+                                        focusMode.equals(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE) ||
+                                        focusMode.equals(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO))
+                                ) {
                             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
                             parameters.setFocusAreas(meteringAreas);
                             if (parameters.getMaxNumMeteringAreas() > 0) {
                                 parameters.setMeteringAreas(meteringAreas);
                             }
-                            if(!parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+                            if (!parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
                                 return false; //cannot autoFocus
                             }
                             mCamera.setParameters(parameters);
@@ -605,7 +621,7 @@ public class Camera1 extends CameraImpl {
                                 }
                             });
                         } else if (parameters.getMaxNumMeteringAreas() > 0) {
-                            if(!parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+                            if (!parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
                                 return false; //cannot autoFocus
                             }
                             parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
@@ -683,5 +699,4 @@ public class Camera1 extends CameraImpl {
             return normalized;
         }
     }
-
 }
